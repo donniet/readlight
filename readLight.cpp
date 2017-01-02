@@ -51,6 +51,8 @@ int main(int ac, char * av[])
 
   cout << "Initializing" << endl ;
 
+  signal(SIGINT, handleInt);
+
   std::chrono::duration<double, std::milli> d(delay);
 
   // Configure the interface.
