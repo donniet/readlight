@@ -31,14 +31,16 @@ int main(int ac, char * av[])
   int lightPin = LIGHT_PIN;
   int channel = CHANNEL;
   bool lit = false;
+  int minValue = 128;
   double delay = 1000.0;
 
   po::options_description desc("Allowed options");
   desc.add_options()
-    ("help", "produce help message")
-    ("lightPin", po::value<int>(&lightPin)->default_value(LIGHT_PIN), "light pin (BCM)")
-    ("channel", po::value<int>(&channel)->default_value(CHANNEL), "chip select channel")
-    ("delay", po::value<double>(&delay)->default_value(1000.0), "delay between readings (ms)");
+    ("help,h", "produce help message")
+    ("lightPin,p", po::value<int>(&lightPin)->default_value(LIGHT_PIN), "light pin (BCM)")
+    ("channel,c", po::value<int>(&channel)->default_value(CHANNEL), "chip select channel")
+    ("minValue,m", po::value<int>(&minValue)->default_value(128), "minimum light value")
+    ("delay,d", po::value<double>(&delay)->default_value(1000.0), "delay between readings (ms)");
 
   po::variables_map vm;
   po::store(po::parse_command_line(ac, av, desc), vm);
@@ -71,11 +73,11 @@ int main(int ac, char * av[])
 
    cout << "value: " << (int)buffer << endl;
 
-   if (buffer < 128 && !lit) {
+   if (buffer <= minValue && !lit) {
      cout << "light on" << endl;
      digitalWrite(lightPin, HIGH);
      lit = true;
-   } else if (buffer >= 128 && lit) {
+   } else if (buffer > minValue && lit) {
      cout << "light off" << endl;
      digitalWrite(lightPin, LOW);
      lit = false;
