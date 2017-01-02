@@ -11,7 +11,6 @@
 
 using namespace std;
 namespace po = boost::program_options;
-using namespace std::chrono_literals;
 
 // channel is the wiringPi name for the chip select (or chip enable) pin.
 // Set this to 0 or 1, depending on how it's connected.
@@ -30,13 +29,15 @@ int main(int ac, char * av[])
   int fd, result;
   unsigned char buffer;
   int lightPin = LIGHT_PIN;
+  int channel = CHANNEL;
   bool lit = false;
-  std::chrono::duration<double, std::milli> delay = 1000.0;
+  double delay = 1000.0;
 
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help", "produce help message")
     ("lightPin", po::value<int>(&lightPin)->default_value(LIGHT_PIN), "light pin (BCM)")
+    ("channel", po::value<int>(&channel)->default_value(CHANNEL), "chip select channel")
     ("delay", po::value<double>(&delay)->default_value(1000.0), "delay between readings (ms)");
 
   po::variables_map vm;
@@ -50,19 +51,21 @@ int main(int ac, char * av[])
 
   cout << "Initializing" << endl ;
 
+  std::chrono::duration<double, std::milli> d(delay);
+
   // Configure the interface.
   // CHANNEL insicates chip select,
   // 500000 indicates bus speed.
   wiringPiSetupGpio();
   digitalWrite(lightPin, LOW);
   lit = false;
-  fd = wiringPiSPISetup(CHANNEL, 500000);
+  fd = wiringPiSPISetup(channel, 500000);
 
   cout << "Init result: " << fd << endl;
 
   // clear display
   while(!interrupted) {
-   wiringPiSPIDataRW(CHANNEL, &buffer, 1);
+   wiringPiSPIDataRW(channel, &buffer, 1);
 
    cout << "value: " << (int)buffer << endl;
 
@@ -76,7 +79,7 @@ int main(int ac, char * av[])
      lit = false;
    }
 
-   std::this_thread::sleep_for(delay);
+   std::this_thread::sleep_for(d);
 
 
   }
